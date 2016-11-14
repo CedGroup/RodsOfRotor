@@ -5,6 +5,7 @@ import com.black.support.ActionOnBar;
 import com.black.support.ReadPattern;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -22,17 +23,19 @@ import java.util.regex.Pattern;
 public class SaveListener implements ActionListener {
     private String name;
     private ArrayList<Float> valueList;
+    @Autowired
     private ActionOnBar actionOnBar;
     private Boolean isSave = true;
     private Boolean isFirstCreated = true;
     private String fileExtension = ".xls";
 
+    @Autowired
     private MainFrame mainFrame;
 
     private String readSheet;
-    private ArrayList<Row> rowsList = new ArrayList<Row>();
-    private HashMap<Integer, ArrayList<Cell>> cellsMap = new HashMap<Integer, ArrayList<Cell>>();
-    private HashMap<Integer, ArrayList<CellStyle>> cellsStyleMap = new HashMap<Integer, ArrayList<CellStyle>>();
+    private ArrayList<Row> rowsList = new ArrayList<>();
+    private HashMap<Integer, ArrayList<Cell>> cellsMap = new HashMap<>();
+    private HashMap<Integer, ArrayList<CellStyle>> cellsStyleMap = new HashMap<>();
     private File file;
     private String path = "C:\\";
 
@@ -86,16 +89,6 @@ public class SaveListener implements ActionListener {
         return isSave;
     }
 
-    //Получаем экземпляр основного фрейма
-    public void setMainFrame(MainFrame mainFrame) {
-        this.mainFrame = mainFrame;
-    }
-
-    //Получаем экземпляр класса добавляющего значения в контейнер
-    public void setActionOnBar(ActionOnBar actionOnBar) {
-        this.actionOnBar = actionOnBar;
-    }
-
     //Метод, который снимает отметку о том что файл не сохранен
     private void ifEndIsStar(){
         if (mainFrame.getTitle().endsWith("*")) {
@@ -124,8 +117,8 @@ public class SaveListener implements ActionListener {
                     Row row = sheet.createRow(r.getRowNum());
 
                     //Берем ячейки и стили ячеек соответствующие строке
-                    ArrayList<Cell> cells = new ArrayList<Cell>(cellsMap.get(row.getRowNum()));
-                    ArrayList<CellStyle> cellStyles = new ArrayList<CellStyle>(cellsStyleMap.get(row.getRowNum()));
+                    ArrayList<Cell> cells = new ArrayList<>(cellsMap.get(row.getRowNum()));
+                    ArrayList<CellStyle> cellStyles = new ArrayList<>(cellsStyleMap.get(row.getRowNum()));
 
                     int count = 0;
 

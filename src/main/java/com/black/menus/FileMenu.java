@@ -13,9 +13,13 @@ import java.awt.event.ActionListener;
  * Created by Nick on 02.02.2016.
  */
 public class FileMenu extends JMenu implements Menu {
+    @Autowired
     private NewFileListener newFileListener;
+    @Autowired
     private OpenListener openListener;
+    @Autowired
     private SaveListener saveListener;
+    @Autowired
     private SaveAsListener saveAsListener;
     @Autowired
     private MainFrame mainFrame;
@@ -32,21 +36,19 @@ public class FileMenu extends JMenu implements Menu {
         addMenuItem("Сохранить", saveListener, this);
         addMenuItem("Сохранить как...", saveAsListener, this);
         this.addSeparator();
-        addMenuItem("Выход", new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (saveListener.getIsSave())
-                    System.exit(0);
+        addMenuItem("Выход", e -> {
+            if (saveListener.getIsSave())
+                System.exit(0);
+            else {
+                int aswn = JOptionPane.showConfirmDialog(mainFrame, "Данный файл не сохранен.\n " +
+                                "Вы действительно хотите создать новый файл испытаний?",
+                        "Предупреждение", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (aswn == JOptionPane.YES_OPTION){
+                    //Устанавличаем фрейм формы видимым
+                    saveListener.save();
+                }
                 else {
-                    int aswn = JOptionPane.showConfirmDialog(mainFrame, "Данный файл не сохранен.\n " +
-                                    "Вы действительно хотите создать новый файл испытаний?",
-                            "Предупреждение", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                    if (aswn == JOptionPane.YES_OPTION){
-                        //Устанавличаем фрейм формы видимым
-                        saveListener.save();
-                    }
-                    else {
-                        System.exit(0);
-                    }
+                    System.exit(0);
                 }
             }
         }, this);
@@ -57,25 +59,5 @@ public class FileMenu extends JMenu implements Menu {
         JMenuItem item = new JMenuItem(name);
         item.addActionListener(listener);
         menu.add(item);
-    }
-
-    //Получает объект класса NewFileListener
-    public void setNewFileListener(NewFileListener newFileListener){
-        this.newFileListener = newFileListener;
-    }
-
-    //Получает объект класса OpenListener
-    public void setOpenListener(OpenListener openListener) {
-        this.openListener = openListener;
-    }
-
-    //Получает объект класса SaveListener
-    public void setSaveListener(SaveListener saveListener) {
-        this.saveListener = saveListener;
-    }
-
-    //Получает объект класса SaveAsListener
-    public void setSaveAsListener(SaveAsListener saveAsListener) {
-        this.saveAsListener = saveAsListener;
     }
 }

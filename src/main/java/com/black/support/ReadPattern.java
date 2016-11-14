@@ -39,8 +39,8 @@ public class ReadPattern {
                 while (rows.hasNext()){
                     Row row = rows.next();
                     //Создаем контейнеры для заполнения значениями ячеек и стилями ячеек
-                    ArrayList<Cell> cellsList = new ArrayList<Cell>();
-                    ArrayList<CellStyle> cellStyles = new ArrayList<CellStyle>();
+                    ArrayList<Cell> cellsList = new ArrayList<>();
+                    ArrayList<CellStyle> cellStyles = new ArrayList<>();
 
                     //Добавляем считанную строку для дальнейшей работы с ней
                     rowsList.add(row);
@@ -96,7 +96,7 @@ public class ReadPattern {
                 while (rows.hasNext()){
                     Row row = rows.next();
                     //Создаем контейнеры для заполнения значениями ячеек и стилями ячеек
-                    ArrayList<Cell> cellsList = new ArrayList<Cell>();
+                    ArrayList<Cell> cellsList = new ArrayList<>();
 
                     //Добавляем считанную строку для дальнейшей работы с ней
                     rowsList.add(row);

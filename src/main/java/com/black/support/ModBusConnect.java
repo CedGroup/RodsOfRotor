@@ -5,12 +5,14 @@ import com.black.frames.MainFrame;
 import net.wimpi.modbus.*;
 import net.wimpi.modbus.net.*;
 import net.wimpi.modbus.util.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -27,7 +29,9 @@ public class ModBusConnect {
     private int unitId = 1; //the unit identifier we will be talking to
     private int baudRate = 9600;
 
+    @Autowired
     private COMSetupFrame comSetupFrame;
+    @Autowired
     private MainFrame mainFrame;
 
     private RunReadChanel firstChanel;
@@ -35,6 +39,7 @@ public class ModBusConnect {
     private RunReadChanel thirdChanel;
     private RunReadChanel fourthChanel;
 
+    @Autowired
     private ActionOnBar actionOnBar;
 
     private ExecutorService executorService;
@@ -82,7 +87,7 @@ public class ModBusConnect {
         }
     }
 
-    //Метод, который открывает соединение с COM-портом, делает запрос и получает ответ
+    //Метод, который делает запрос и получает ответ
     public void makeRequestTakeResponse() {
         //Создаем для получения данных через COM-порт отдельный поток
         if(makeResponse == null) {
@@ -90,8 +95,8 @@ public class ModBusConnect {
             executorService.execute(makeResponse);
         }
         else {
-            changeChannelsIsStop(false);
             executorService.execute(makeResponse);
+            changeChannelsIsStop(false);
         }
     }
 
@@ -108,11 +113,9 @@ public class ModBusConnect {
         int timerDelay = 1000;
 
         //Закрытие подключение к COM-порту и сброс флагов чтения данных в каналах
-        Timer delay = new Timer(timerDelay, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                con.close();
-                changeChannelsIsStop(false);
-            }
+        Timer delay = new Timer(timerDelay, e -> {
+            con.close();
+            changeChannelsIsStop(false);
         });
 
         //Запуск таймера для закрытия COM-порта
@@ -129,52 +132,16 @@ public class ModBusConnect {
         this.unitId = unitId;
     }
 
-    //Получение экземпляра класса, который создает фрейм для размещения настроек
-    //для COM-порта
-    public void setComSetupFrame(COMSetupFrame comSetupFrame) {
-        this.comSetupFrame = comSetupFrame;
-    }
-
-    //Получает объект главного фрейма
-    public void setMainFrame(MainFrame mainFrame) {
-        this.mainFrame = mainFrame;
-    }
-
-    public void setActionOnBar(ActionOnBar actionOnBar) {
-        this.actionOnBar = actionOnBar;
-    }
-
     //метод, который подсвечивает завершение испытания
     private void testEnd(){
         mainFrame.getCommonPanel().getStatusLabel().setText("Испытание законченно");
 
         //Таймер, который стирает надпись про завершение испытания
-        Timer timer = new Timer(1500, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                mainFrame.getCommonPanel().getStatusLabel().setText("");
-            }
-        });
+        Timer timer = new Timer(1500, e -> mainFrame.getCommonPanel().getStatusLabel().setText(""));
 
         //Единоразовый запус таймера
         timer.setRepeats(false);
         timer.start();
-    }
-
-    //Создание потока для каналов с отображением значений
-    private void makeChannelThreadWithLabel(RunReadChanel channel, SerialConnection con,
-                                           JLabel label, int regAddress, int devAddress){
-        //Задаем параметры для канала
-        channel.setParameters(con, mainFrame, label, regAddress, devAddress);
-        //Запускаем считывание отдельным потоком
-        executorService.execute(channel);
-    }
-
-    private void makeChannelThreadWithOutLabel(RunReadChanel channel, SerialConnection con,
-                                              int regAddress, int devAddress){
-        //Задаем параметры для канала
-        channel.setParameters(con, mainFrame, regAddress, devAddress);
-        //Запускаем считывание отдельным потоком
-        executorService.execute(channel);
     }
 
     private void changeChannelsIsStop(boolean isStop) {
@@ -188,24 +155,28 @@ public class ModBusConnect {
         public void run() {
             //Создаем объект класса для считывания данных из первого канала
             firstChanel = new RunReadChanel();
-            makeChannelThreadWithLabel(firstChanel, con, mainFrame.getCommonPanel().getFirstChanel(),
-                    0x100, unitId);
+            firstChanel.setParameters(con, mainFrame, mainFrame.getCommonPanel().getFirstChanel(), 0x100, unitId);
+            executorService.execute(firstChanel);
 
             //Создаем объект класса для считывания данных из второго канала
             secondChanel = new RunReadChanel();
-            makeChannelThreadWithOutLabel(secondChanel, con, 0x200, unitId);
+            secondChanel.setParameters(con, mainFrame, null, 0x200, unitId);
+            executorService.execute(secondChanel);
 
             //Создаем объект класса для считывания данных из третьего канала
             thirdChanel = new RunReadChanel();
-            makeChannelThreadWithOutLabel(thirdChanel, con, 0x300, unitId);
+            thirdChanel.setParameters(con, mainFrame, null, 0x300, unitId);
+            executorService.execute(thirdChanel);
 
             //Создаем объект класса для считывания данных из четвертого канала
             fourthChanel = new RunReadChanel();
-            makeChannelThreadWithOutLabel(fourthChanel, con, 0x400, unitId);
+            fourthChanel.setParameters(con, mainFrame, null, 0x400, unitId);
+            executorService.execute(fourthChanel);
 
             //Объект получающий объекты каналов и обрабатывающий значения из них
             actionOnBar.setBarVoltage(firstChanel); //Измерение напряжения
-            actionOnBar.setSetBar(secondChanel, thirdChanel); //Занести измерение
+            actionOnBar.setSetBar(secondChanel); //Занести измерение
+            actionOnBar.setDeleteBar(thirdChanel); //Сделать повторное измерение
 
             //При удачном подключении уведомляем об этом в главном окне
             mainFrame.getCommonPanel().getStatusLabel().setText("Испытание начато");

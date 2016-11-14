@@ -10,15 +10,12 @@ import net.wimpi.modbus.msg.ReadMultipleRegistersResponse;
 import net.wimpi.modbus.net.SerialConnection;
 
 import javax.swing.*;
-import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Nick on 11.02.2016.
  */
 public class RunReadChanel implements Runnable {
-    private ModbusSerialTransaction transaction; //Передача данных
-    private ReadMultipleRegistersRequest request; //Запрос к slave-устройству
-    private ReadMultipleRegistersResponse response; //Ответ slave-устройства
     private SerialConnection connection; //Подключение к ком порту
 
     private JLabel label; //страка, в которой высвечивается измерянное знаяение из канала
@@ -40,51 +37,38 @@ public class RunReadChanel implements Runnable {
         this.unitId = unitId;
     }
 
-    //Установка основных параметров для запуска чтения данных
-    public void setParameters(SerialConnection connection, MainFrame mainFrame,
-                              int reference, int unitId){
-        this.connection = connection;
-        this.reference = reference;
-        this.mainFrame = mainFrame;
-        this.unitId = unitId;
-        this.label = null;
-    }
-
     //Метод читающий данные из канала
     public void run() {
-        //Подготовка запроса
-        request = new ReadMultipleRegistersRequest(reference, count);
+        ReadMultipleRegistersRequest request = new ReadMultipleRegistersRequest(reference, count);
         request.setUnitID(unitId);
-        request.setDataLength(20);
         request.setHeadless();
-        request.setReference(reference);
 
         try {
             //Делаем запросы к регистрам
-            while (!isStop) {
-                transaction = new ModbusSerialTransaction(connection); //Инициализируем передачу данных
-                transaction.setTransDelayMS(30); //Задержка между запросом-ответом
-                transaction.setRequest(request); //Установка запроса для передачи данных
+            ModbusSerialTransaction transaction = new ModbusSerialTransaction(connection); //Инициализируем передачу данных
+            transaction.setTransDelayMS(50); //Задержка между запросом-ответом
+            transaction.setRequest(request); //Установка запроса для передачи данных
+            transaction.setRetries(1);
 
+            while (!isStop) {
                 transaction.execute();
-                response = (ReadMultipleRegistersResponse) transaction.getResponse();
+                ReadMultipleRegistersResponse response = (ReadMultipleRegistersResponse) transaction.getResponse();
 
                 String doubleWord = "";
 
                 //Из двух двухбайтных чисел создаем одно число с плавающей запятой
                 for (int n = 0; n < response.getWordCount(); n++) {
                     if (n == 0) {
-                        doubleWord += makeWord(response.getRegisterValue(n));
+                        doubleWord += MakeWord.make(response.getRegisterValue(n));
                     }
                     if (n == 1) {
-                        if(!doubleWord.equals("")) {
-                            doubleWord += makeWord(response.getRegisterValue(n));
+                        if (!doubleWord.equals("")) {
+                            doubleWord += MakeWord.make(response.getRegisterValue(n));
                             value = makeDouble(doubleWord);
-                            if (value <= 0.1){
+                            if (value <= 0.1) {
                                 value = 0F;
                             }
-                        }
-                        else {
+                        } else {
                             value = 0F;
                         }
                         //Если есть где отображать данные, отображаем
@@ -96,7 +80,6 @@ public class RunReadChanel implements Runnable {
                 }
             }
         } catch (ModbusIOException ex) {
-            ex.setEOF(true);
             ex.printStackTrace();
             JOptionPane.showMessageDialog(mainFrame, "Нет ответа от модуля",
                     "Ошибка подключения к модулю", JOptionPane.ERROR_MESSAGE);
@@ -121,48 +104,8 @@ public class RunReadChanel implements Runnable {
         return value;
     }
 
-    //Метод создает шестнадцатиричное представление для двухбайтного десятичного числа
-    private synchronized String makeWord(int word){
-        //получаем входное число
-        int s = word;
-        //Создаем внутреннюю переменную
-        String helpWord = "";
-        //Массив символов char
-        ArrayList<Character> charList = new ArrayList<Character>();
-
-        //переменная для вычисления остатка
-        int rest = 0;
-
-        //Пока s > 0 вычисляем эквивалентное шестнадцатиричное число
-        //Результат получается "перевернутым"
-        while (s > 0) {
-            rest = s%16;
-            s = s/16;
-            //Полученное значение остатка преобразовываем в символ
-            char c = Character.forDigit(rest, Character.MAX_RADIX);
-            charList.add(Character.toUpperCase(c));
-        }
-
-        //Устанавливаем нормальное следование чисел
-        for (int i = 0; i < charList.size() / 2; i++){
-            char first = charList.get(i);
-            int point = charList.size() - 1 - i;
-            char last = charList.get(point);
-
-            charList.set(i, last);
-            charList.set(point, first);
-        }
-
-        //Конкастенируем переменные из контейнера в одну строку
-        for (char c : charList){
-            helpWord += c;
-        }
-
-        return helpWord;
-    }
-
     //Преобразуем четырех байтное шестнадцатиричное число в значение с плавающей запятой
-    private synchronized Float makeDouble(String s) {
+    private Float makeDouble(String s) {
         Long i = Long.parseLong(s, 16);
         Float f = Float.intBitsToFloat(i.intValue());
         return f;

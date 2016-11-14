@@ -4,7 +4,9 @@ import com.black.listeners.OpenListener;
 import com.black.listeners.SaveListener;
 import com.black.panels.COMSetupPanel;
 import com.black.panels.CommonPanel;
+import com.black.support.ComSetup;
 import com.black.support.ModBusConnect;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -22,20 +24,23 @@ import java.util.StringTokenizer;
 public class COMSetupFrame extends JFrame {
     //Ссылка на объект класса панели для настройки
     private COMSetupPanel comSetupPanel;
-    //Контейнер для получения сохраненных настроек для COM-порта
-    private ArrayList<String> tokenList = new ArrayList<String>(Arrays.asList("0", "0", "0", "0"));
 
+    private ComSetup comSetup = new ComSetup();
+
+    @Autowired
     private SaveListener saveListener;
 
+    @Autowired
     private OpenListener openListener;
 
-    //Класс присоединения к COM-порту
+    @Autowired
     private ModBusConnect modBusConnect;
 
     //Отступ
     private final int WIDTHINDENT = 200;
     private final int HEIGHTINDENT = 200;
 
+    private String fileName = "comSetup.set";
 
     public void init(){
         //Установка заголовка фрейма
@@ -44,10 +49,10 @@ public class COMSetupFrame extends JFrame {
         //Установка расположения фрейма
         setLocation(WIDTHINDENT, HEIGHTINDENT);
 
-        setParameters();
+        readFile();
 
         //Создаем объект класс COMSetupPanel
-        comSetupPanel = new COMSetupPanel(tokenList);
+        comSetupPanel = new COMSetupPanel(comSetup);
 
         //Установка наполнения фрейма
         add(comSetupPanel.$$$getRootComponent$$$());
@@ -59,14 +64,12 @@ public class COMSetupFrame extends JFrame {
         setResizable(false);
 
         //Добавление listener'а к кнопке "ок" расположенной на панели
-        comSetupPanel.getOkButton().addActionListener(new OkListener(COMSetupFrame.this, comSetupPanel, modBusConnect));
+        comSetupPanel.getOkButton().addActionListener(new OkListener(COMSetupFrame.this));
 
         //Кнопка "Отмена" скрывает фрейм
-        comSetupPanel.getCancelButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                COMSetupFrame.this.setVisible(false);
-                COMSetupFrame.this.setLocation(WIDTHINDENT, HEIGHTINDENT);
-            }
+        comSetupPanel.getCancelButton().addActionListener(e -> {
+            COMSetupFrame.this.setVisible(false);
+            COMSetupFrame.this.setLocation(WIDTHINDENT, HEIGHTINDENT);
         });
     }
 
@@ -80,79 +83,52 @@ public class COMSetupFrame extends JFrame {
         return HEIGHTINDENT;
     }
 
-    //Получение объекта класса присоединющегося к COM-порту
-    public void setModBusConnect(ModBusConnect modBusConnect){
-        this.modBusConnect = modBusConnect;
-    }
-
     //Метод читающий сохраненные параметры из файла
     private void readFile(){
         try{
-            //Получаем файл с сохраненными настройками
-            File file = new File("comsetup.set");
-            //Открываем стрим для чтения данных из файла
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            try {
-                //Создаем пустую ссылку для принятия строки
-                String gotString = null;
+            File file = new File(fileName);
+            if (!file.exists()){
+                comSetup.setPath("0");
+                comSetup.setDevAddress(0);
+                comSetup.setBitRate(0);
+                comSetup.setPort(0);
 
-                tokenList.clear();
+                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(file));
 
-                //Пока есть данные в файле принимаем их
-                while ((gotString = br.readLine()) != null){
-                    //Создаем объект класса разбиваеющего строку на токены
-                    StringTokenizer tokenizer = new StringTokenizer(gotString, ";");
-                    //Разбиваем строку на токены и заносим в контейнер
-                    while (tokenizer.hasMoreTokens()){
-                        tokenList.add(tokenizer.nextToken());
-                    }
-                }
+                outputStream.writeObject(comSetup);
             }
+
+            //Получаем файл с сохраненными настройками
+            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(fileName));
+
+            comSetup = (ComSetup) inputStream.readObject();
+
+            try {
+                modBusConnect.setParameters(comSetup.getPort(), comSetup.getBitRate(), comSetup.getDevAddress());
+                saveListener.setPath(comSetup.getPath());
+                openListener.setPath(comSetup.getPath());
+            }
+
             //В любом случае закрываем поток
             finally {
-                br.close();
+                inputStream.close();
             }
         }
         catch (IOException exc){
             exc.printStackTrace();
         }
-    }
-
-    //Получение объекта класса сохраняющего протоколы испытаний
-    public void setSaveListener(SaveListener saveListener) {
-         this.saveListener = saveListener;
-    }
-
-    //Получение объекта класса открывающего протоколы испытаний
-    public void setOpenListener(OpenListener openListener) {
-        this.openListener = openListener;
-    }
-
-    private void setParameters(){
-        //Чтание файла с настройками
-        readFile();
-
-        //Передача параметров из файла для настройки COM-пота
-        modBusConnect.setParameters(tokenList.get(0),
-                Integer.parseInt(tokenList.get(1)),
-                Integer.parseInt(tokenList.get(2)));
-
-        //Адрес из файла для сохранения архивов
-        saveListener.setPath(tokenList.get(3));
-        openListener.setPath(tokenList.get(3));
+        catch (ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
     }
 
     //Класс отвечающий за нажатие кнопки "ОК"
     private class OkListener implements ActionListener {
         private COMSetupFrame comSetupFrame;
-        private COMSetupPanel comSetupPanel;
-        private ModBusConnect modBusConnect;
 
         //При создании объекта класса присваиваим его внутренним полям экземпляры необходимых классов
-        OkListener(COMSetupFrame comSetupFrame, COMSetupPanel comSetupPanel, ModBusConnect modBusConnect){
+        OkListener(COMSetupFrame comSetupFrame){
             this.comSetupFrame = comSetupFrame;
-            this.comSetupPanel = comSetupPanel;
-            this.modBusConnect = modBusConnect;
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -164,33 +140,26 @@ public class COMSetupFrame extends JFrame {
 
             //Запись выбранных настроек в файл
             try{
-                //Создаем файл
-                File file = new File("comsetup.set");
-                //Присваиваем файлу стрим записи
-                FileWriter fw = new FileWriter(file.getName());
+                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(fileName));
 
                 try {
                     //Получаем объкты из полей
-                    Object selectedPort = comSetupPanel.getPortNumber().getSelectedItem();
-                    Object selectedBiteRate = comSetupPanel.getBitRate().getSelectedItem();
-                    String selectedDevAddress = comSetupPanel.getDevAddress().getText();
-                    String selectedPath = comSetupPanel.getPathField().getText();
+
+                    comSetup.setPort(comSetupPanel.getPortNumber().getSelectedItem());
+                    comSetup.setBitRate(comSetupPanel.getBitRate().getSelectedItem());
+                    comSetup.setDevAddress(comSetupPanel.getDevAddress().getText());
+                    comSetup.setPath(comSetupPanel.getPathField().getText());
 
                     //Устанавливаем параметры для соединения с
-                    modBusConnect.setParameters(selectedPort.toString(),
-                            Integer.parseInt(selectedBiteRate.toString()),
-                            Integer.parseInt(selectedDevAddress));
+                    modBusConnect.setParameters(comSetup.getPort(), comSetup.getBitRate(), comSetup.getDevAddress());
 
                     //Записываем объекты в файл
-                    fw.write(selectedPort.toString() + ";");
-                    fw.write(selectedBiteRate.toString() + ";");
-                    fw.write(selectedDevAddress + ";");
-                    fw.write(selectedPath + ";");
+                    outputStream.writeObject(comSetup);
                 }
                 finally {
                     //Закрываем поток
-                    fw.close();
-                    setParameters();
+                    outputStream.close();
+                    readFile();
                 }
             }
             catch(IOException exc){

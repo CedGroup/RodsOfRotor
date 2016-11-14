@@ -7,6 +7,7 @@ import com.black.panels.CommonPanel;
 import com.black.support.ActionOnBar;
 import com.black.support.ModBusConnect;
 import com.black.support.RunReadChanel;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,7 +28,10 @@ public class MainFrame extends JFrame {
     private final int HEIGHT = 600;
     private JMenuBar menuBar = new JMenuBar();
     private CommonPanel commonPanel = new CommonPanel();
+
+    @Autowired
     private ModBusConnect modBusConnect;
+    @Autowired
     private SaveListener saveListener;
 
     private FileMenu fileMenu;
@@ -68,63 +72,55 @@ public class MainFrame extends JFrame {
         setContentPane(commonPanel.$$$getRootComponent$$$());
 
         //Запускаем испытание нажатием кнопки на главной панели
-        commonPanel.getStartTestButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //Открываем COM-порт и запрашиваем данные из каналов
-                modBusConnect.makeRequestTakeResponse();
+        commonPanel.getStartTestButton().addActionListener(e -> {
+            //Открываем COM-порт и запрашиваем данные из каналов
+            modBusConnect.makeRequestTakeResponse();
 
-                //Запрещаем изменять внесенные даныне
-                commonPanel.getDataPanel().getChangeButton().setEnabled(false);
-                setMenusEnable(false);
-                commonPanel.getDisconnectToCOMButton().setEnabled(false);
+            //Запрещаем изменять внесенные даныне
+            commonPanel.getDataPanel().getChangeButton().setEnabled(false);
+            setMenusEnable(false);
+            commonPanel.getDisconnectToCOMButton().setEnabled(false);
 
-                commonPanel.getDeleteLastBar().setEnabled(true);
+            commonPanel.getDeleteLastBar().setEnabled(true);
 
-                //Очищаем контейнер с данными высот столбцов при запуске нового испытания
-                commonPanel.getAdditionalPanel().getGraphPanel().clearContainer();
-            }
+            //Очищаем контейнер с данными высот столбцов при запуске нового испытания
+            commonPanel.getAdditionalPanel().getGraphPanel().clearContainer();
         });
 
         //Останавливаем испытание нажатием кнопки на главной панели
-        commonPanel.getStopTestButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //Останавличаем запрос данных
-                modBusConnect.stopRequestResponse();
-                commonPanel.getDisconnectToCOMButton().setEnabled(true);
-                commonPanel.getDataPanel().getChangeButton().setEnabled(true);
+        commonPanel.getStopTestButton().addActionListener(e -> {
+            //Останавличаем запрос данных
+            modBusConnect.stopRequestResponse();
+            commonPanel.getDisconnectToCOMButton().setEnabled(true);
+            commonPanel.getDataPanel().getChangeButton().setEnabled(true);
 
-                setMenusEnable(true);
-                commonPanel.getDeleteLastBar().setEnabled(false);
-            }
+            setMenusEnable(true);
+            commonPanel.getDeleteLastBar().setEnabled(false);
         });
 
-        commonPanel.getConnectToCOMButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                commonPanel.getConnectToCOMButton().setVisible(false);
-                commonPanel.getDisconnectToCOMButton().setVisible(true);
+        commonPanel.getConnectToCOMButton().addActionListener(e -> {
+            commonPanel.getConnectToCOMButton().setVisible(false);
+            commonPanel.getDisconnectToCOMButton().setVisible(true);
 
-                commonPanel.getStartTestButton().setEnabled(true);
-                commonPanel.getStopTestButton().setEnabled(true);
+            commonPanel.getStartTestButton().setEnabled(true);
+            commonPanel.getStopTestButton().setEnabled(true);
 
 
-                commonPanel.getCOMStatus().setText("COM: подключено");
+            commonPanel.getCOMStatus().setText("COM: подключено");
 
-                modBusConnect.connectToCOM();
-            }
+            modBusConnect.connectToCOM();
         });
 
-        commonPanel.getDisconnectToCOMButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                modBusConnect.closeConnection();
+        commonPanel.getDisconnectToCOMButton().addActionListener(e -> {
+            modBusConnect.closeConnection();
 
-                commonPanel.getConnectToCOMButton().setVisible(true);
-                commonPanel.getDisconnectToCOMButton().setVisible(false);
+            commonPanel.getConnectToCOMButton().setVisible(true);
+            commonPanel.getDisconnectToCOMButton().setVisible(false);
 
-                commonPanel.getStartTestButton().setEnabled(false);
-                commonPanel.getStopTestButton().setEnabled(false);
+            commonPanel.getStartTestButton().setEnabled(false);
+            commonPanel.getStopTestButton().setEnabled(false);
 
-                commonPanel.getCOMStatus().setText("COM: отключено");
-            }
+            commonPanel.getCOMStatus().setText("COM: отключено");
         });
     }
 
@@ -142,16 +138,6 @@ public class MainFrame extends JFrame {
     //Возвращаем объект класса CommonPanel
     public CommonPanel getCommonPanel() {
         return commonPanel;
-    }
-
-    //получаем экземпляр класса, который открывает порт и посывлает modbus запросы
-    public void setModBusConnect(ModBusConnect modBusConnect) {
-        this.modBusConnect = modBusConnect;
-    }
-
-    //получаем экземпляр класса, который сохраняет протоколы
-    public void setSaveListener(SaveListener saveListener) {
-        this.saveListener = saveListener;
     }
 
     public FileMenu getFileMenu() {

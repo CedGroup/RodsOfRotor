@@ -24,10 +24,10 @@ public class GraphPanel extends JPanel {
     int dashLength = 2;
 
     //Массив значений для рисования столбиков
-    private ArrayList<Float> valueList = new ArrayList<Float>();
+    private ArrayList<Float> valueList = new ArrayList<>();
 
     //Массив значений расположения меток оси ОХ
-    private ArrayList<Float> dashLabelX = new ArrayList<Float>();
+    private ArrayList<Float> dashLabelX = new ArrayList<>();
 
     private Float maxBarHigh = 0F;
 

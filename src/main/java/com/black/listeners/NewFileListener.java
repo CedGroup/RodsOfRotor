@@ -14,8 +14,11 @@ import java.awt.event.ActionListener;
  */
 //Класс отслеживающий нажатия на пункт меню "Новый"
 public class NewFileListener implements ActionListener {
+    @Autowired
     private FormFrame formFrame;
+    @Autowired
     private MainFrame mainFrame;
+    @Autowired
     private SaveListener saveListener;
 
     @Autowired
@@ -35,19 +38,6 @@ public class NewFileListener implements ActionListener {
                 prepareNewForm();
             }
         }
-    }
-
-    //Получение объекта класса FormFrame из контейнера Spring
-    public void setFormFrame(FormFrame formFrame) {
-        this.formFrame = formFrame;
-    }
-
-    public void setMainFrame(MainFrame mainFrame) {
-        this.mainFrame = mainFrame;
-    }
-
-    public void setSaveListener(SaveListener saveListener) {
-        this.saveListener = saveListener;
     }
 
     private void prepareNewForm(){

@@ -3,6 +3,7 @@ package com.black.listeners;
 import com.black.frames.MainFrame;
 import com.black.support.ReadPattern;
 import org.apache.poi.ss.usermodel.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -16,11 +17,12 @@ import java.util.HashMap;
  * Created by Nick on 02.02.2016.
  */
 public class OpenListener implements ActionListener {
+    @Autowired
     private MainFrame mainFrame;
     private String path;
-    private ArrayList<Row> rowsList = new ArrayList<Row>();
-    private HashMap<Integer, ArrayList<Cell>> cellsMap = new HashMap<Integer, ArrayList<Cell>>();
-    private ArrayList<Float> valueList = new ArrayList<Float>();
+    private ArrayList<Row> rowsList = new ArrayList<>();
+    private HashMap<Integer, ArrayList<Cell>> cellsMap = new HashMap<>();
+    private ArrayList<Float> valueList = new ArrayList<>();
 
     public void actionPerformed(ActionEvent e) {
         JFileChooser chooser = new JFileChooser(path);
@@ -96,10 +98,6 @@ public class OpenListener implements ActionListener {
         mainFrame.getFileMenu().getItem(3).setEnabled(false);
         mainFrame.getFileMenu().getItem(4).setEnabled(false);
         mainFrame.repaint();
-    }
-
-    public void setMainFrame(MainFrame mainFrame) {
-        this.mainFrame = mainFrame;
     }
 
     public void setPath(String path) {

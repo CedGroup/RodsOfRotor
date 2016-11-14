@@ -1,5 +1,7 @@
 package com.black.panels;
 
+import com.black.support.ComSetup;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
@@ -13,8 +15,8 @@ import java.util.ArrayList;
  */
 //Класс рисующий панель для настроек COM-порта
 public class COMSetupPanel {
-    public COMSetupPanel(ArrayList<String> tokenList) {
-        this.tokenList = tokenList;
+    public COMSetupPanel(ComSetup comSetup) {
+        this.comSetup = comSetup;
 
         //Заполняем чек-бокс адресами COM-портов
         for (int i = 1; i <= 10; i++) {
@@ -24,7 +26,7 @@ public class COMSetupPanel {
 
         //Устанавливаем порт по умолчанию из файла
         for (int i = 0; i < portNumber.getItemCount(); i++) {
-            Object obj = tokenList.get(0);
+            Object obj = comSetup.getPort();
             if (portNumber.getItemAt(i).equals(obj)) {
                 portNumber.setSelectedItem(obj);
             }
@@ -49,7 +51,7 @@ public class COMSetupPanel {
 
         //Устанавливаем скорость передачи по умолчанию из файла
         for (int i = 0; i < bitRate.getItemCount(); i++) {
-            Object obj = tokenList.get(1);
+            Object obj = comSetup.getBitRate().toString();
             if (bitRate.getItemAt(i).equals(obj)) {
                 bitRate.setSelectedItem(obj);
             }
@@ -57,10 +59,10 @@ public class COMSetupPanel {
 
         //Устанавливаем значение по-умолчанию
         //адресса slave-устройства
-        devAddress.setValue(new Integer(Integer.parseInt(tokenList.get(2))));
+        devAddress.setValue(comSetup.getDevAddress());
 
         //Установка адреса для сохранения
-        path = tokenList.get(3);
+        path = comSetup.getPath();
 
         //Установка значения в поле
         pathField.setText(path);
@@ -77,7 +79,7 @@ public class COMSetupPanel {
     private JFormattedTextField devAddress;
     private JTextField pathField;
     private JButton getPathbutton;
-    private ArrayList<String> tokenList;
+    private ComSetup comSetup;
     private String path = "C:\\";
 
     //Возвращаем созданный объект кнопки OK

@@ -3,14 +3,14 @@ package com.black.listeners;
 import com.black.frames.MainFrame;
 import com.black.panels.GraphPanel;
 import com.black.support.RunReadChanel;
+import com.black.support.ZeroFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Nick on 24.03.2016.
@@ -18,18 +18,16 @@ import java.util.concurrent.TimeUnit;
 public class TimerSetBarListener implements ActionListener {
     private Float valueToSet = 0F; //Объект для хранения значения нажатия кнопки "Записать"
     private Float value; //Объект для хранения значения высоты столбика
-    private Float valueToBlock = 0F;
 
-    private Float referenceValueHigh = 3F; //Эталонное значение верхнего нажатия кнопки
-    private Float referenceValueLow = 1.4F; //Эталонное значение верхнего нажатия кнопки
+    private Float referenceValueHigh = 4F; //Эталонное значение верхнего нажатия кнопки
+    private Float referenceValueLow = 2F; //Эталонное значение верхнего нажатия кнопки
 
     private boolean setBarFlag; //Флаг нажатия кнопки "Записать"
-    private boolean isListenerAdded;
 
     private int rodsNumber; //Количество стержней
     private ArrayList<Float> valueList; //Контейнер хранения значений высот столбцов
 
-    private ArrayList<Float> intermediateValuesContainer = new ArrayList<Float>();
+    private ArrayList<Float> intermediateValuesList = new ArrayList<>();
 
     @Autowired
     private MainFrame mainFrame;
@@ -38,70 +36,22 @@ public class TimerSetBarListener implements ActionListener {
     @Autowired
     private SaveListener saveListener;
 
+    @Autowired
+    private TimerDeleteBarListener timerDeleteBarListener;
+
     private RunReadChanel setBar;
-    private RunReadChanel deleteBar;
     private RunReadChanel barVoltage;
-
-    private Timer timer; //Задержка времени измерения
-
-    private static final int delayTime = 200;
 
     private String stringRodsNumber; //Количество стержней в строковом значении
 
-    private ActionListener addListener;
-
-    private ActionListener deleteListener;
-
     public void init(){
         graphPanel = mainFrame.getCommonPanel().getAdditionalPanel().getGraphPanel();
-
-        this.mainFrame.getCommonPanel().getDeleteLastBar().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int r = JOptionPane.showConfirmDialog(mainFrame, "Вы точно хотите удалить последнее измерение?",
-                        "Удаление последнего измерения",JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-                if (r == JOptionPane.OK_OPTION && valueList.size() > 0) {
-                    valueList.remove(valueList.size() - 1);
-                    //Перерисовываем график и главный фрейм
-                    graphPanel.setValueList(valueList);
-                    graphPanel.repaint();
-                    mainFrame.repaint();
-                }
-            }
-        });
-
-        timer =  new Timer(delayTime, null);
-        //timer.setRepeats(false);
-
-        addListener = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //Добавляем значение в контейнер
-                intermediateValuesContainer.add(value);
-            }
-        };
-
-        /*
-        deleteListener = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if(valueList.size() > 0) {
-                    valueList.remove(valueList.size() - 1);
-                    System.out.println("deleteListener");
-                }
-
-                valueList.add(value);
-
-                setBarFlag = true;
-                System.out.println("deleteListener setBarFlag = " + setBarFlag);
-
-                repaintFoo();
-            }
-        };*/
     }
 
     public void actionPerformed(ActionEvent e) {
         //Считываем значения из каналов
         value = barVoltage.getValue();
         valueToSet = setBar.getValue();
-        //valueToBlock = deleteBar.getValue();
 
         float valueFromLabel = 0;
 
@@ -117,35 +67,19 @@ public class TimerSetBarListener implements ActionListener {
             rodsNumber = Integer.parseInt(stringRodsNumber);
         }
 
-        if (valueToSet > referenceValueHigh && valueFromLabel > 0
-                && valueToBlock < referenceValueLow && !setBarFlag
-                && valueList.size() < rodsNumber) {
-            if (!isListenerAdded) {
-                timerAddListenerFoo(addListener);
-                isListenerAdded = true;
+        if (valueToSet > referenceValueHigh && valueList.size() < rodsNumber) {
+            if (!setBarFlag) {
                 setBarFlag = true;
             }
-            System.out.println("valueFromLabel > 0");
-        } else if (valueToSet > referenceValueHigh && valueFromLabel == 0
-                && valueToBlock < referenceValueLow && !setBarFlag
-                && valueList.size() < rodsNumber) {
-            if (!isListenerAdded) {
-                timerAddListenerFoo(addListener);
-                isListenerAdded = true;
-                setBarFlag = true;
-            }
-            System.out.println("valueFromLabel == 0");
+            intermediateValuesList.add(value);
         }
 
-        if (valueToSet <= referenceValueHigh && valueToBlock <= referenceValueLow
-                && setBarFlag) {
+        if (valueToSet <= referenceValueLow && valueFromLabel <= 0 && setBarFlag){
             setBarFlag = false;
-            isListenerAdded = false;
-            System.out.println("setBarFlag = false;\n");
-            Float endedValue = Collections.max(intermediateValuesContainer);
+            timerDeleteBarListener.setReMeasure(false);
+            Float endedValue = Collections.max(intermediateValuesList);
             valueList.add(endedValue);
-            timer.stop();
-            intermediateValuesContainer.clear();
+            intermediateValuesList.clear();
             repaintFoo();
         }
     }
@@ -160,10 +94,6 @@ public class TimerSetBarListener implements ActionListener {
 
     public void setValueList(ArrayList<Float> valueList) {
         this.valueList = valueList;
-    }
-
-    public void setDeleteBar(RunReadChanel deleteBar){
-        this.deleteBar = deleteBar;
     }
 
     public void clearContainer(){
@@ -181,16 +111,5 @@ public class TimerSetBarListener implements ActionListener {
         graphPanel.setValueList(valueList);
         graphPanel.repaint();
         mainFrame.repaint();
-    }
-
-    private synchronized void timerAddListenerFoo(ActionListener listener){
-        ActionListener [] listeners = timer.getActionListeners();
-
-        for (ActionListener listenerIns: listeners){
-            timer.removeActionListener(listenerIns);
-        }
-
-        timer.addActionListener(listener);
-        timer.start();
     }
 }

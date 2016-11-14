@@ -1,6 +1,7 @@
 package com.black.menus;
 
 import com.black.listeners.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -9,6 +10,7 @@ import java.awt.event.ActionListener;
  * Created by Nick on 02.02.2016.
  */
 public class EditMenu extends JMenu implements Menu {
+    @Autowired
     private OptionsListener optionsListener;
 
     //Добавляет имя меню и его пункты
@@ -23,10 +25,5 @@ public class EditMenu extends JMenu implements Menu {
         JMenuItem item = new JMenuItem(name);
         item.addActionListener(listener);
         menu.add(item);
-    }
-
-    //Получает объект класса OptionsListener
-    public void setOptionsListener(OptionsListener optionsListener) {
-        this.optionsListener = optionsListener;
     }
 }

@@ -3,69 +3,42 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
 
        <context:annotation-config/>
+
+       <context:component-scan base-package="com.black"/>
 
        <bean name="mainFrameBean" class="com.black.frames.MainFrame" init-method="init">
               <property name="fileMenu" ref="fileMenuBean"/>
               <property name="editMenu" ref="editMenuListener"/>
-              <property name="modBusConnect" ref="ModBusConnectBean"/>
-              <property name="saveListener" ref="saveListenerBean"/>
        </bean>
 
-       <bean name="newFileListenerBean" class="com.black.listeners.NewFileListener">
-              <property name="formFrame" ref="formFrame"/>
-              <property name="mainFrame" ref="mainFrameBean"/>
-              <property name="saveListener" ref="saveListenerBean"/>
-       </bean>
+       <bean name="newFileListenerBean" class="com.black.listeners.NewFileListener"/>
 
-       <bean name="fileMenuBean" class="com.black.menus.FileMenu" init-method="init">
-              <property name="newFileListener" ref="newFileListenerBean"/>
-              <property name="openListener" ref="openListenerBean"/>
-              <property name="saveListener" ref="saveListenerBean"/>
-              <property name="saveAsListener" ref="saveAsListenerBean"/>
-       </bean>
+       <bean name="fileMenuBean" class="com.black.menus.FileMenu" init-method="init"/>
 
-       <bean name="openListenerBean" class="com.black.listeners.OpenListener">
-              <property name="mainFrame" ref="mainFrameBean"/>
-       </bean>
+       <bean name="openListenerBean" class="com.black.listeners.OpenListener"/>
 
-       <bean name="saveListenerBean" class="com.black.listeners.SaveListener">
-              <property name="actionOnBar" ref="ActionOnBarBean"/>
-              <property name="mainFrame" ref="mainFrameBean"/>
-       </bean>
+       <bean name="saveListenerBean" class="com.black.listeners.SaveListener"/>
 
-       <bean name="saveAsListenerBean" class="com.black.listeners.SaveAsListener">
-              <property name="mainFrame" ref="mainFrameBean"/>
-       </bean>
+       <bean name="saveAsListenerBean" class="com.black.listeners.SaveAsListener"/>
 
-       <bean name="formFrame" class="com.black.frames.FormFrame" init-method="init">
-              <property name="mainFrame" ref="mainFrameBean"/>
-              <property name="saveListener" ref="saveListenerBean"/>
-       </bean>
+       <bean name="formFrame" class="com.black.frames.FormFrame" init-method="init"/>
 
-       <bean name="optionListenerBean" class="com.black.listeners.OptionsListener">
-              <property name="comSetupFrame" ref="COMSetupFrameBean"/>
-       </bean>
+       <bean name="optionListenerBean" class="com.black.listeners.OptionsListener"/>
 
-       <bean name="editMenuListener" class="com.black.menus.EditMenu" init-method="init">
-              <property name="optionsListener" ref="optionListenerBean"/>
-       </bean>
+       <bean name="editMenuListener" class="com.black.menus.EditMenu" init-method="init"/>
 
-       <bean name="COMSetupFrameBean" class="com.black.frames.COMSetupFrame" init-method="init">
-              <property name="modBusConnect" ref="ModBusConnectBean"/>
-              <property name="saveListener" ref="saveListenerBean"/>
-              <property name="openListener" ref="openListenerBean"/>
-       </bean>
+       <bean name="COMSetupFrameBean" class="com.black.frames.COMSetupFrame" init-method="init"/>
 
-       <bean name="ModBusConnectBean" class="com.black.support.ModBusConnect">
-              <property name="comSetupFrame" ref="COMSetupFrameBean"/>
-              <property name="mainFrame" ref="mainFrameBean"/>
-              <property name="actionOnBar" ref="ActionOnBarBean"/>
-       </bean>
+       <bean name="ModBusConnectBean" class="com.black.support.ModBusConnect"/>
 
        <bean name="ActionOnBarBean" class="com.black.support.ActionOnBar" init-method="init"/>
 
        <bean name="timerSetBean" class="com.black.listeners.TimerSetBarListener" init-method="init"/>
+
+       <bean name="timerDeleteBean" class="com.black.listeners.TimerDeleteBarListener" init-method="init"/>
 </beans>

@@ -9,7 +9,4 @@ import java.awt.event.WindowListener;
  */
 public interface Menu {
     void addMenuItem(String name, ActionListener listener, JMenu menu);
-    interface Some extends ActionListener, WindowListener {
-        void menuMenu(int i);
-    }
 }

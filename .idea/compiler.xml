@@ -25,8 +25,6 @@
         <module name="RodsOfRotor" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="RodsOfRotor" target="1.5" />
-    </bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8" />
   </component>
 </project>

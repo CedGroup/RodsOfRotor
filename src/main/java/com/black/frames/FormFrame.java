@@ -4,6 +4,7 @@ import com.black.listeners.SaveListener;
 import com.black.panels.CommonPanel;
 import com.black.panels.DataPanel;
 import com.black.panels.FormPanel;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -18,6 +19,7 @@ public class FormFrame extends JFrame {
     //Создает объект класс FormPanel
     private FormPanel formPanel = new FormPanel();
 
+    @Autowired
     //Основной фрейм
     private MainFrame mainFrame;
 
@@ -28,6 +30,7 @@ public class FormFrame extends JFrame {
     private int widthIndent = 150;
     private int heightIndent = 150;
 
+    @Autowired
     //Класс сохраняющий протоколы
     private SaveListener saveListener;
 
@@ -49,11 +52,9 @@ public class FormFrame extends JFrame {
         commonPanel = mainFrame.getCommonPanel();
 
         //Кнопка "Отмена" скрывает фрейм
-        formPanel.getCancelButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                setVisible(false);
-                destroy();
-            }
+        formPanel.getCancelButton().addActionListener(e -> {
+            setVisible(false);
+            destroy();
         });
 
         //Создаем listener'а для кнопки "Ок"
@@ -63,11 +64,9 @@ public class FormFrame extends JFrame {
         formPanel.getOkButton().addActionListener(okButtonListener);
 
         //При нажатии кнопки "Изменить" вызывается этот фрейм
-        commonPanel.getDataPanel().getChangeButton().addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                FormFrame.this.setVisible(true);
-                okButtonListener.setIsChangeButtonPress(true);
-            }
+        commonPanel.getDataPanel().getChangeButton().addActionListener(e -> {
+            FormFrame.this.setVisible(true);
+            okButtonListener.setIsChangeButtonPress(true);
         });
 
         //Компановка панели во фрейме
@@ -85,15 +84,6 @@ public class FormFrame extends JFrame {
         });
     }
 
-    //Получение объекта класса из контейнера Spring
-    public void setMainFrame(MainFrame mainFrame) {
-        this.mainFrame = mainFrame;
-    }
-
-    //Получение объекта класса сохраняющего протоколы испытаний
-    public void setSaveListener(SaveListener saveListener) {
-        this.saveListener = saveListener;
-    }
 
     //Метод возвращающий первоначальные настроки окна и панели
     protected void destroy() {
