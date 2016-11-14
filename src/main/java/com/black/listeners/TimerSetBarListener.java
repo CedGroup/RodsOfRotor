@@ -9,6 +9,8 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Nick on 24.03.2016.
@@ -22,9 +24,12 @@ public class TimerSetBarListener implements ActionListener {
     private Float referenceValueLow = 1.4F; //Эталонное значение верхнего нажатия кнопки
 
     private boolean setBarFlag; //Флаг нажатия кнопки "Записать"
+    private boolean isListenerAdded;
 
     private int rodsNumber; //Количество стержней
     private ArrayList<Float> valueList; //Контейнер хранения значений высот столбцов
+
+    private ArrayList<Float> intermediateValuesContainer = new ArrayList<Float>();
 
     @Autowired
     private MainFrame mainFrame;
@@ -65,23 +70,16 @@ public class TimerSetBarListener implements ActionListener {
         });
 
         timer =  new Timer(delayTime, null);
-        timer.setRepeats(false);
+        //timer.setRepeats(false);
 
         addListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //Добавляем значение в контейнер
-                if (!setBarFlag) {
-                    valueList.add(value);
-                    System.out.println("addListener");
-                }
-
-                setBarFlag = true;
-                System.out.println("addListener setBarFlag = " + setBarFlag);
-
-                repaintFoo();
+                intermediateValuesContainer.add(value);
             }
         };
 
+        /*
         deleteListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(valueList.size() > 0) {
@@ -96,15 +94,14 @@ public class TimerSetBarListener implements ActionListener {
 
                 repaintFoo();
             }
-        };
+        };*/
     }
-
 
     public void actionPerformed(ActionEvent e) {
         //Считываем значения из каналов
         value = barVoltage.getValue();
         valueToSet = setBar.getValue();
-        valueToBlock = deleteBar.getValue();
+        //valueToBlock = deleteBar.getValue();
 
         float valueFromLabel = 0;
 
@@ -120,29 +117,36 @@ public class TimerSetBarListener implements ActionListener {
             rodsNumber = Integer.parseInt(stringRodsNumber);
         }
 
-        if (valueToSet > referenceValueHigh && valueFromLabel > 0 && valueToBlock < referenceValueLow && !setBarFlag && valueList.size() < rodsNumber && !timer.isRunning()) {
-            timerAddListenerFoo(addListener);
+        if (valueToSet > referenceValueHigh && valueFromLabel > 0
+                && valueToBlock < referenceValueLow && !setBarFlag
+                && valueList.size() < rodsNumber) {
+            if (!isListenerAdded) {
+                timerAddListenerFoo(addListener);
+                isListenerAdded = true;
+                setBarFlag = true;
+            }
             System.out.println("valueFromLabel > 0");
-        }
-        else if (valueToBlock >= referenceValueLow && valueFromLabel > 0 && !setBarFlag && valueList.size() <= rodsNumber && !timer.isRunning()) {
-            timerAddListenerFoo(deleteListener);
-            System.out.println("valueToBlock >= referenceValueLow && valueFromLabel > 0");
-        }
-
-
-        if (valueToSet > referenceValueHigh && valueFromLabel == 0 && valueToBlock < referenceValueLow && !setBarFlag && valueList.size() < rodsNumber && !timer.isRunning()) {
-            timerAddListenerFoo(addListener);
+        } else if (valueToSet > referenceValueHigh && valueFromLabel == 0
+                && valueToBlock < referenceValueLow && !setBarFlag
+                && valueList.size() < rodsNumber) {
+            if (!isListenerAdded) {
+                timerAddListenerFoo(addListener);
+                isListenerAdded = true;
+                setBarFlag = true;
+            }
             System.out.println("valueFromLabel == 0");
         }
-        else if (valueToBlock >= referenceValueLow && valueFromLabel == 0 && !setBarFlag && valueList.size() <= rodsNumber && !timer.isRunning()) {
-            timerAddListenerFoo(deleteListener);
-            System.out.println("valueToBlock >= referenceValueLow && valueFromLabel == 0");
-        }
 
-        if (valueToSet <= referenceValueHigh && valueToBlock <= referenceValueLow && setBarFlag && !timer.isRunning()){
+        if (valueToSet <= referenceValueHigh && valueToBlock <= referenceValueLow
+                && setBarFlag) {
             setBarFlag = false;
+            isListenerAdded = false;
             System.out.println("setBarFlag = false;\n");
+            Float endedValue = Collections.max(intermediateValuesContainer);
+            valueList.add(endedValue);
             timer.stop();
+            intermediateValuesContainer.clear();
+            repaintFoo();
         }
     }
 
@@ -179,7 +183,7 @@ public class TimerSetBarListener implements ActionListener {
         mainFrame.repaint();
     }
 
-    private void timerAddListenerFoo(ActionListener listener){
+    private synchronized void timerAddListenerFoo(ActionListener listener){
         ActionListener [] listeners = timer.getActionListeners();
 
         for (ActionListener listenerIns: listeners){

@@ -22,13 +22,15 @@ public class ActionOnBar {
     public void init(){
         //Установка таймера на считывание кнопки "Записать значение"
         timerSetBarListener.setValueList(valueList);
-        timerSetBar = new Timer(20, timerSetBarListener);
+        synchronized (timerSetBarListener) {
+            timerSetBar = new Timer(20, timerSetBarListener);
+        }
     }
 
     //Получаем объект считывающий данные из канала, который устанавливает значение высоты столбца в контейнр
     public void setSetBar(RunReadChanel setBar, RunReadChanel deleteBar) {
         timerSetBarListener.setSetBar(setBar);
-        timerSetBarListener.setDeleteBar(deleteBar);
+        //timerSetBarListener.setDeleteBar(deleteBar);
         timerSetBar.start();
     }
 

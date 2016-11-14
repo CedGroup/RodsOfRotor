@@ -122,7 +122,7 @@ public class RunReadChanel implements Runnable {
     }
 
     //Метод создает шестнадцатиричное представление для двухбайтного десятичного числа
-    private String makeWord(int word){
+    private synchronized String makeWord(int word){
         //получаем входное число
         int s = word;
         //Создаем внутреннюю переменную
@@ -162,7 +162,7 @@ public class RunReadChanel implements Runnable {
     }
 
     //Преобразуем четырех байтное шестнадцатиричное число в значение с плавающей запятой
-    private Float makeDouble(String s) {
+    private synchronized Float makeDouble(String s) {
         Long i = Long.parseLong(s, 16);
         Float f = Float.intBitsToFloat(i.intValue());
         return f;
