@@ -77,7 +77,7 @@ public class TimerSetBarListener implements ActionListener {
         if (valueToSet <= referenceValueLow && valueFromLabel <= 0 && setBarFlag){
             setBarFlag = false;
             timerDeleteBarListener.setReMeasure(false);
-            Float endedValue = Collections.max(intermediateValuesList);
+            Float endedValue = Collections.max(intermediateValuesList) * 20;
             valueList.add(endedValue);
             intermediateValuesList.clear();
             repaintFoo();
