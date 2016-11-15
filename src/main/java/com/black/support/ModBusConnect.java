@@ -93,9 +93,9 @@ public class ModBusConnect {
         if(makeResponse == null) {
             makeResponse = new MakeResponse();
             executorService.execute(makeResponse);
+            System.out.println(executorService);
         }
         else {
-            executorService.execute(makeResponse);
             changeChannelsIsStop(false);
         }
     }
