@@ -56,6 +56,11 @@ public class ActionOnBar {
         timerDeleteBar.stop();
     }
 
+    public void startTimers(){
+        timerSetBar.start();
+        timerDeleteBar.start();
+    }
+
     public ArrayList<Float> getValueList() {
         return valueList;
     }

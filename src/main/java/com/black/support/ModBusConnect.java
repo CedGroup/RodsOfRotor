@@ -97,7 +97,14 @@ public class ModBusConnect {
         }
         else {
             changeChannelsIsStop(false);
+            executorService.shutdown();
+            executorService = Executors.newCachedThreadPool();
+            executorService.execute(makeResponse);
+            System.out.println(executorService);
         }
+
+        //При удачном подключении уведомляем об этом в главном окне
+        mainFrame.getCommonPanel().getStatusLabel().setText("Испытание начато");
     }
 
     public void stopRequestResponse(){
@@ -105,6 +112,7 @@ public class ModBusConnect {
         changeChannelsIsStop(true);
         actionOnBar.stopTimers();
         //При удачном подключении уведомляем об этом в главном окне
+        System.out.println(executorService);
         mainFrame.getCommonPanel().getStatusLabel().setText("Испытание остановлено");
     }
 
@@ -177,9 +185,6 @@ public class ModBusConnect {
             actionOnBar.setBarVoltage(firstChanel); //Измерение напряжения
             actionOnBar.setSetBar(secondChanel); //Занести измерение
             actionOnBar.setDeleteBar(thirdChanel); //Сделать повторное измерение
-
-            //При удачном подключении уведомляем об этом в главном окне
-            mainFrame.getCommonPanel().getStatusLabel().setText("Испытание начато");
         }
     }
 }

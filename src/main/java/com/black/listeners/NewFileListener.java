@@ -20,10 +20,8 @@ public class NewFileListener implements ActionListener {
     private MainFrame mainFrame;
     @Autowired
     private SaveListener saveListener;
-
     @Autowired
     private TimerSetBarListener timerSetBarListener;
-
     //При нажатии на пункт меню, каждый раз создается новая форма
     public void actionPerformed(ActionEvent e) {
         if (saveListener.getIsSave()) {

@@ -1,23 +1,14 @@
 package com.black.frames;
 
-import com.black.listeners.SaveListener;
 import com.black.menus.EditMenu;
 import com.black.menus.FileMenu;
 import com.black.panels.CommonPanel;
-import com.black.support.ActionOnBar;
 import com.black.support.ModBusConnect;
-import com.black.support.RunReadChanel;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
+
 
 /**
  * Created by Nick on 02.02.2016.
@@ -31,8 +22,6 @@ public class MainFrame extends JFrame {
 
     @Autowired
     private ModBusConnect modBusConnect;
-    @Autowired
-    private SaveListener saveListener;
 
     private FileMenu fileMenu;
 
