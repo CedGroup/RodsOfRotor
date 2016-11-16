@@ -29,8 +29,9 @@ public class GraphPanel extends JPanel {
     //Массив значений расположения меток оси ОХ
     private ArrayList<Float> dashLabelX = new ArrayList<>();
 
-    private Float maxBarHigh = 0F;
+    private ArrayList<Integer> equivalentPercentageValueContainer = new ArrayList<>();
 
+    private Float maxBarHigh = 0F;
 
     //TODO цвета для фона и столбиков
     /*Color.HSBtoRGB(102, 204, 255); //Голубой
@@ -117,6 +118,11 @@ public class GraphPanel extends JPanel {
         }
     }
 
+    public ArrayList<Integer> getEquivalentPercentageValueContainer() {
+        return equivalentPercentageValueContainer;
+    }
+
+
     //Метод для рисования отметок на оси OY и столбиков
     private void drawMarksOY(double lengthOX, double lengthOY, float lineYX1, float lineYY1, Graphics2D g2) {
         //Цикл, который добавляет метки на ось
@@ -148,6 +154,7 @@ public class GraphPanel extends JPanel {
 
     //Метод для рисования столбцов
     private void drawBars(double lengthOY, Graphics2D g2){
+        equivalentPercentageValueContainer.clear();
         if (valueList.size() > 0) {
             //Берем значение из контейнера
             Float barHigh = 0F;
@@ -186,6 +193,8 @@ public class GraphPanel extends JPanel {
                         //Рисуем подпись над столбиком
                         g2.drawString(String.format("%.0f", forString), dashLabelX.get(i) - dashLength * 2, indentX + 10);
                     }
+
+                    equivalentPercentageValueContainer.add(Math.round(forString));
                 } else {
                     //Берем из контейнера значение и умножаем на коэффициент расчитаный
                     //относительно максимального значения
@@ -206,6 +215,8 @@ public class GraphPanel extends JPanel {
                         g2.drawString(String.format("%.0f", forStrFlo), dashLabelX.get(i) - dashLength * 4,
                                 barHigh - insBarHigh + 30);
                     }
+
+                    equivalentPercentageValueContainer.add(Math.round(forStrFlo));
                 }
             }
         }

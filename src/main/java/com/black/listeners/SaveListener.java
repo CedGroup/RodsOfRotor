@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class SaveListener implements ActionListener {
     private String name;
-    private ArrayList<Float> valueList;
+    private ArrayList<Integer> valueList;
     @Autowired
     private ActionOnBar actionOnBar;
     private Boolean isSave = true;
@@ -109,7 +109,8 @@ public class SaveListener implements ActionListener {
 
             try {
                 //Получаем контейнер с данными
-                valueList = actionOnBar.getValueList();
+                valueList = mainFrame.getCommonPanel().getAdditionalPanel()
+                        .getGraphPanel().getEquivalentPercentageValueContainer();
 
                 //Вносим данные шаблона в новую книгу
                 for (Row r : rowsList) {
